@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mzansi Fighters Prototype</title>
+  <style>
+    canvas { border: 1px solid black; background-color: #87CEEB; }
+    body { text-align: center; font-family: Arial, sans-serif; }
+    .button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Mzansi Fighters: Prototype</h2>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div>
+    <button class="button" onclick="performAction('punch')">Punch (Spacebar)</button>
+    <button class="button" onclick="performAction('kick')">Kick (Ctrl)</button>
+  </div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Player details
+    let player = {
+      x: 50,
+      y: 300,
+      width: 50,
+      height: 100,
+      color: 'blue',
+      speed: 5,
+      dx: 0,
+      dy: 0,
+      health: 100,
+      isAttacking: false,
+      attackType: null
+    };
+
+    // Opponent details
+    let opponent = {
+      x: 700,
+      y: 300,
+      width: 50,
+      height: 100,
+      color: 'red',
+      speed: 3,
+      health: 100,
+      isAttacking: false
+    };
+
+    // Draw player and opponent
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawOpponent() {
+      ctx.fillStyle = opponent.color;
+      ctx.fillRect(opponent.x, opponent.y, opponent.width, opponent.height);
+    }
+
+    // Draw health bars
+    function drawHealthBars() {
+      // Player health bar
+      ctx.fillStyle = 'green';
+      ctx.fillRect(50, 20, player.health * 2, 20);
+
+      // Opponent health bar
+      ctx.fillStyle = 'red';
+      ctx.fillRect(650, 20, opponent.health * 2, 20);
+    }
+
+    // Move player
+    function movePlayer() {
+      player.x += player.dx;
+      player.y += player.dy;
+    }
+
+    // Move opponent (AI)
+    function moveOpponent() {
+      if (opponent.x > player.x) opponent.x -= opponent.speed;
+      else if (opponent.x < player.x) opponent.x += opponent.speed;
+
+      // Attack player if close enough
+      if (Math.abs(opponent.x - player.x) < 50) {
+        opponent.isAttacking = true;
+        player.health -= 10; // Opponent damage
+      }
+    }
+
+    // Perform attack
+    function performAction(action) {
+      player.isAttacking = true;
+      player.attackType = action;
+
+      // Reset attack after animation time
+      setTimeout(() => {
+        player.isAttacking = false;
+        player.attackType = null;
+      }, 300); // Attack duration
+    }
+
+    // Check for collisions and health reduction
+    function checkCombat() {
+      if (Math.abs(player.x - opponent.x) < 50 && player.isAttacking) {
+        opponent.health -= 10;
+      }
+      if (opponent.health <= 0) {
+        opponent.health = 0;
+        alert("You Win!");
+      }
+
+      if (player.health <= 0) {
+        player.health = 0;
+        alert("Game Over!");
+      }
+    }
+
+    // Update canvas
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawOpponent();
+      drawHealthBars();
+      movePlayer();
+      moveOpponent();
+      checkCombat();
+    }
+
+    // Handle key events
+    function keyDownHandler(e) {
+      if (e.key === "ArrowRight") {
+        player.dx = player.speed;
+      } else if (e.key === "ArrowLeft") {
+        player.dx = -player.speed;
+      } else if (e.key === "ArrowUp") {
+        player.dy = -player.speed;
+      } else if (e.key === "ArrowDown") {
+        player.dy = player.speed;
+      } else if (e.key === " " || e.key === "Spacebar") {
+        performAction('punch');
+      } else if (e.key === "Control") {
+        performAction('kick');
+      }
+    }
+
+    function keyUpHandler(e) {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        player.dx = 0;
+      }
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        player.dy = 0;
+      }
+    }
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+
+    // Start the game loop
+    setInterval(update, 1000 / 60);  // 60 FPS
+  </script>
+</body>
+</html>
